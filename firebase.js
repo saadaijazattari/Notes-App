@@ -30,34 +30,36 @@ const errorMsg=document.querySelector('#errorMsg')
 
 
 // check function for user login
-export function checkUser(){
-
+export function checkUser() {
   onAuthStateChanged(auth, (user) => {
+
+    const currentPage = window.location.pathname;
+
     if (user) {
-  
-      const uid = user.uid;
-  if(window.location.pathname !== '/index.html'){
-
-    window.location.href="./index.html"
-  }
-  
+      // user logged in → home
+      if (!currentPage.includes('home.html')) {
+        window.location.href = './home.html'
+      }
     } else {
-      if(window.location.pathname == '/index.html'  ){
-        window.location.href="./login.html"
-
-        console.log("user is loged out");
+      // user not logged in
+      if (
+        !currentPage.includes('index.html') &&
+        !currentPage.includes('signup.html')
+      ) {
+        window.location.href = './index.html'
       }
     }
-  });
 
+  });
 }
+
 
 // logout function
 export function logout(){
 
 signOut(auth).then(() => {
   console.log('logout successfully');
-  window.location.href="./login.html"
+  window.location.href="./index.html"
   
   // Sign-out successful.
 }).catch((error) => {
@@ -72,6 +74,7 @@ createUserWithEmailAndPassword(auth, email, password)
   .then((userCredential) => {
     // Signed up 
     const user = userCredential.user;
+    location.href='./index.html'
     console.log(user);
 
     
@@ -100,6 +103,7 @@ signInWithEmailAndPassword(auth, email, password)
   .then((userCredential) => {
     // Signed in 
     const user = userCredential.user;
+    window.location.href='./home.html'
     console.log(user," ==> user loged in");
     
     // ...
