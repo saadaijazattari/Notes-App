@@ -10,6 +10,20 @@ import {
   signInWithPopup
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
+import { 
+  getFirestore,
+  doc,
+  setDoc,
+  collection,
+  getDoc,
+  query,
+  where,
+  getDocs,
+  deleteDoc,
+  updateDoc
+
+ } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
 
 
 const firebaseConfig = {
@@ -24,9 +38,12 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
+const db = getFirestore(app);
 const provider = new GoogleAuthProvider();
-
 const errorMsg=document.querySelector('#errorMsg')
+
+
+
 
 
 // check function for user login
@@ -143,6 +160,94 @@ signInWithPopup(auth, provider)
   });
 }
 
+
+//  add data function
+ export async function addData(selectionImportance,todoDescription,todoTitle,date,time){
+
+  const colRef = collection(db, "todos")
+
+// Generate unique document reference automatically
+const docRef = doc(colRef) 
+
+
+// Add a new document in collection "cities"
+
+
+
+await setDoc(docRef, {
+  todoTitle : todoTitle,
+  todoDescription : todoDescription,
+  isImportant : selectionImportance,
+  createdAt : `${date} at ${time}`
+});
+
+console.log(docRef.id, "  unique id");
+
+return docRef.id
+
+}
+
+
+
+// get data function 
+export async function getData(uniqueId){
+
+const docRef = doc(db, "todos", uniqueId);
+const docSnap = await getDoc(docRef);
+
+if (docSnap.exists()) {
+  console.log("Document data:", docSnap.data());
+} else {
+  // docSnap.data() will be undefined in this case
+  console.log("No such document!");
+}
+}
+
+
+// get multiple data
+export async function getAllData(){
+  const userArray = []  
+  const q = query(collection(db, "todos"));
+
+const querySnapshot = await getDocs(q);
+querySnapshot.forEach((doc) => {
+  // doc.data() is never undefined for query doc snapshots
+  // console.log(doc.id, " => ", doc.data());
+  userArray.push({id:doc.id,...doc.data()})
+});
+
+return userArray
+
+}
+
+// delete todo
+export async function deleteData(uniqueId){
+
+
+await deleteDoc(doc(db, 'todos', uniqueId));
+
+}
+
+// update Todo
+export async function UpdateTodo(selectedTodo,updatedTitle,updatedDescription,updatedImportance){
+const now = new Date()
+    const date = `${now.getDate()}-${now.getMonth()+1}-${now.getFullYear()}`
+    const time = `${now.getHours()}:${now.getMinutes()}:${now.getSeconds()}`
+
+    console.log(selectedTodo);
+    console.log(updatedTitle);
+    console.log(updatedDescription);
+    console.log(updatedImportance);
+    
+
+// Add a new document in collection "cities"
+await updateDoc(doc(db, "todos", selectedTodo.id), {
+  todoTitle : updatedTitle,
+  todoDescription : updatedDescription,
+  isImportant : updatedImportance,
+  createdAt : `${date} at ${time}`
+});
+}
 
 
 
