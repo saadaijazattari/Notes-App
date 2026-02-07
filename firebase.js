@@ -47,18 +47,18 @@ const errorMsg=document.querySelector('#errorMsg')
 
 
 // check function for user login
+
+
 export function checkUser() {
   onAuthStateChanged(auth, (user) => {
 
     const currentPage = window.location.pathname;
 
     if (user) {
-      // user logged in → home
       if (!currentPage.includes('home.html')) {
         window.location.href = './home.html'
       }
     } else {
-      // user not logged in
       if (
         !currentPage.includes('index.html') &&
         !currentPage.includes('signup.html')
@@ -69,6 +69,8 @@ export function checkUser() {
 
   });
 }
+
+
 
 
 // logout function
@@ -174,12 +176,16 @@ const docRef = doc(colRef)
 
 
 
+
+const user = auth.currentUser;
+
 await setDoc(docRef, {
   noteTitle : noteTitle,
   noteDescription : noteDescription,
   isImportant : selectionImportance,
   noteImageUrl:imageUrl,
-  createdAt : `${date} at ${time}`
+  createdAt : `${date} at ${time}`,
+  userId: user.uid   // ⭐ MOST IMPORTANT
 });
 
 console.log(docRef.id, "  unique id");
@@ -207,18 +213,20 @@ if (docSnap.exists()) {
 
 // get multiple data
 export async function getAllData(){
-  const userArray = []  
-  const q = query(collection(db, "notes"));
-
-const querySnapshot = await getDocs(q);
-querySnapshot.forEach((doc) => {
-  // doc.data() is never undefined for query doc snapshots
-  // console.log(doc.id, " => ", doc.data());
-  userArray.push({id:doc.id,...doc.data()})
-});
-
-return userArray
-
+  const userArray = []
+  const user = auth.currentUser;
+  if(!user){
+    return [];
+  }
+  const q = query(
+    collection(db, "notes"),
+    where("userId", "==", user.uid)   // ⭐ only current user data
+  );
+  const querySnapshot = await getDocs(q);
+  querySnapshot.forEach((doc) => {
+    userArray.push({ id: doc.id, ...doc.data() })
+  });
+  return userArray
 }
 
 // delete note

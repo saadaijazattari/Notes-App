@@ -3,6 +3,22 @@ import { addData, checkUser, deleteData, getAllData, getData, googleLogin, login
 
 checkUser()
 
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+const auth = getAuth();
+
+onAuthStateChanged(auth, async (user) => {
+  if(user){
+    userDataArray = await getAllData();
+    console.log(userDataArray, "==> DATA FROM FIRESTORE");
+    showUserData();
+  }
+});
+
+
+/* HTML: <div class="loader"></div> */
+
+
 const signupPassword=document.querySelector('#signupPassword')
 const signupEmail=document.querySelector('#signupEmail')
 const signupName=document.querySelector('#signupName')
@@ -29,6 +45,7 @@ const updateBtn=document.querySelector('#updateBtn')
 const updateImage=document.querySelector('#updateImage')
 
 const noteImage=document.querySelector('#noteImage')
+const loader=document.querySelector('#loaderOverlay')
 
 
 
@@ -105,64 +122,71 @@ if(addDataBtn){
   stopOnFocus: true
 }).showToast();
 
-      return
+      return;
     }
 
 // cloudinary code 
 
+loader.style.display = 'flex';
 
-
-
-
-const formData = new FormData();
-  formData.append('file', noteImage.files[0]);
-  formData.append('upload_preset', 'coderSaad');
-
-  console.log(formData,"form data");
+try {
+  const formData = new FormData();
+    formData.append('file', noteImage.files[0]);
+    formData.append('upload_preset', 'coderSaad');
   
- const imageUrl= await  addPhoto(formData)
- console.log(imageUrl,"image url");
- 
-
+    console.log(formData,"form data");
+    
+   const imageUrl= await  addPhoto(formData)
+   console.log(imageUrl,"image url");
+   
   
-
-// cloudinary code end
-
-
-      
-    const now = new Date()
-    const date = `${now.getDate()}-${now.getMonth()+1}-${now.getFullYear()}`
-    const time = `${now.getHours()}:${now.getMinutes()}:${now.getSeconds()}`
-    const selectionImportance=getValue()
-    console.log(noteTitle.value);
-    console.log(noteDescription.value);
-    console.log(noteImage);
     
-    
-     uniqueId=await addData(selectionImportance,noteDescription.value,noteTitle.value,date,time,imageUrl)
-    console.log(selectionImportance);
-             getData(uniqueId)
-
-             
-
-       userDataArray=await getAllData()
-
-       Toastify({
-     text: "✅ note added successfully!",
-     duration: 3000,
-     close: true,
-     gravity: "top",
-     position: "right",
-     backgroundColor: "linear-gradient(to right, #28a745, #85e085)",
-     stopOnFocus: true
-   }).showToast();
-        showUserData()
-
+  
+  // cloudinary code end
+  
+  
+        
+      const now = new Date()
+      const date = `${now.getDate()}-${now.getMonth()+1}-${now.getFullYear()}`
+      const time = `${now.getHours()}:${now.getMinutes()}:${now.getSeconds()}`
+      const selectionImportance=getValue()
+      console.log(noteTitle.value);
+      console.log(noteDescription.value);
+      console.log(noteImage);
       
+      
+       uniqueId=await addData(selectionImportance,noteDescription.value,noteTitle.value,date,time,imageUrl)
+      console.log(selectionImportance);
+               getData(uniqueId)
+  
+               
+  
+         userDataArray=await getAllData()
+  
+         Toastify({
+       text: "✅ note added successfully!",
+       duration: 3000,
+       close: true,
+       gravity: "top",
+       position: "right",
+       backgroundColor: "linear-gradient(to right, #28a745, #85e085)",
+       stopOnFocus: true
+     }).showToast();
+          showUserData()
+  
+        
+  
+  
+      noteDescription.value=''
+      noteTitle.value=''
+  
+} catch (error) {
+  console.log(error);
+  
+} finally{
+  loader.style.display = 'none';
+}
 
-
-    noteDescription.value=''
-    noteTitle.value=''
 
 
 
@@ -359,11 +383,7 @@ async function showUserData(){
 
 
 //  call get all data
-window.addEventListener('DOMContentLoaded', async () => {
-  userDataArray = await getAllData()
-  console.log(userDataArray, "==> DATA FROM FIRESTORE")
-  showUserData()
-})
+
 
 
 // delete notes functionality
@@ -423,51 +443,63 @@ if(e.target.classList.contains('updatenoteBtn')){
 // update data functionality
 updateBtn.addEventListener('click', async () => {
 
+  loader.style.display = 'flex';
 
- let updatedImageUrl = selectednoteDetails.noteImageUrl; // default purani image
-
-  // agar user ne new image select ki
-  if(updateImage.files[0]){
-    const formData = new FormData();
-    formData.append('file', updateImage.files[0]);
-    formData.append('upload_preset', 'coderSaad');
-
-    updatedImageUrl = await addPhoto(formData);
+  try {
+    let updatedImageUrl = selectednoteDetails.noteImageUrl; // default purani image
+   
+     // agar user ne new image select ki
+     if(updateImage.files[0]){
+       const formData = new FormData();
+       formData.append('file', updateImage.files[0]);
+       formData.append('upload_preset', 'coderSaad');
+   
+       updatedImageUrl = await addPhoto(formData);
+     }
+   
+   
+   
+     selectednoteDetails.noteTitle = updateTitle.value
+     selectednoteDetails.noteDescription = updateDescription.value
+     selectednoteDetails.isImportant = updateImportant.value
+       selectednoteDetails.noteImageUrl = updatedImageUrl
+   
+     await Updatenote(
+       selectednoteDetails,
+       selectednoteDetails.noteTitle,
+       selectednoteDetails.noteDescription,
+       selectednoteDetails.isImportant,
+       selectednoteDetails.noteImageUrl
+     )
+   
+     // Refresh UI
+     userDataArray = await getAllData()
+     showUserData()
+   
+       const modalEl = document.getElementById('staticBackdrop')
+     const modal = bootstrap.Modal.getInstance(modalEl)
+     modal.hide()
+   
+     Toastify({
+       text: "✏️ note updated successfully!",
+       duration: 3000,
+       close: true,
+       gravity: "top",
+       position: "right",
+       backgroundColor: "linear-gradient(to right, #2193b0, #6dd5ed)",
+       stopOnFocus: true
+     }).showToast();
+    
+  } catch (error) {
+   console.log(error);
+    
+  } finally{
+    loader.style.display = 'none';
   }
 
 
+ })
 
-  selectednoteDetails.noteTitle = updateTitle.value
-  selectednoteDetails.noteDescription = updateDescription.value
-  selectednoteDetails.isImportant = updateImportant.value
-    selectednoteDetails.noteImageUrl = updatedImageUrl
-
-  await Updatenote(
-    selectednoteDetails,
-    selectednoteDetails.noteTitle,
-    selectednoteDetails.noteDescription,
-    selectednoteDetails.isImportant,
-    selectednoteDetails.noteImageUrl
-  )
-
-  // Refresh UI
-  userDataArray = await getAllData()
-  showUserData()
-
-    const modalEl = document.getElementById('staticBackdrop')
-  const modal = bootstrap.Modal.getInstance(modalEl)
-  modal.hide()
-
-  Toastify({
-    text: "✏️ note updated successfully!",
-    duration: 3000,
-    close: true,
-    gravity: "top",
-    position: "right",
-    backgroundColor: "linear-gradient(to right, #2193b0, #6dd5ed)",
-    stopOnFocus: true
-  }).showToast();
-})
 
 
 

@@ -1,7 +1,61 @@
-.modal-header {
-  border-bottom: none;
+html, body {
+  height: 100%;
+  margin: 0;
 }
 
-.modal-footer {
-  border-top: none;
+.modal-header {
+    border-bottom: none;
+  }
+
+  .modal-footer {
+    border-top: none;
+  }
+
+
+  /* HTML: <div class="loader"></div> */
+  /* HTML: <div class="loader"></div> */
+  /* Full screen overlay with blur */
+  /* Full screen overlay with blur */
+#loaderOverlay { 
+  position: fixed; /* ⭐ fixed for full viewport */
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(255, 255, 255, 0.3); /* semi-transparent */
+  backdrop-filter: blur(5px); /* blur effect */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+  display: none; /* hidden by default */
 }
+
+
+  /* Circular loader */
+  .loader {
+    width: 50px;
+    padding: 8px;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    background: #4f46e5;
+    --_m: 
+      conic-gradient(#0000 10%,#000),
+      linear-gradient(#000 0 0) content-box;
+    -webkit-mask: var(--_m);
+            mask: var(--_m);
+    -webkit-mask-composite: source-out;
+            mask-composite: subtract;
+    animation: l3 1s infinite linear;
+  }
+
+  @keyframes l3 {
+    to { transform: rotate(1turn); }
+  }
+
+  /* Hidden class to toggle loader */
+  .hidden {
+    display: none;
+  }
