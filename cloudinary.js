@@ -1,6 +1,5 @@
 
-const apikey='858826627119291'
-const secretKey='87xBqxdmo7eQoR2_GlXaB1003tU'
+
 
 const url = 'https://api.cloudinary.com/v1_1/dplhoc2lf/image/upload';
 
