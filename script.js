@@ -1,4 +1,5 @@
-import { addData, checkUser, deleteData, getAllData, getData, googleLogin, login, logout, signup, UpdateTodo } from "./firebase.js"
+import { addPhoto } from "./cloudinary.js"
+import { addData, checkUser, deleteData, getAllData, getData, googleLogin, login, logout, signup, Updatenote } from "./firebase.js"
 
 checkUser()
 
@@ -15,8 +16,8 @@ const logoutBtn=document.querySelector('#logoutBtn')
 const googleBtn=document.querySelector('#googleBtn')
 
 const addDataBtn=document.querySelector('#addDataBtn')
-const todoTitle=document.querySelector('#todoTitle')
-const todoDescription=document.querySelector('#todoDescription')
+const noteTitle=document.querySelector('#noteTitle')
+const noteDescription=document.querySelector('#noteDescription')
 
 const notImpNoteSec=document.querySelector('#notImpNoteSec')
 const impNoteSec=document.querySelector('#impNoteSec')
@@ -25,6 +26,9 @@ const updateDescription=document.querySelector('#updateDescription')
 const updateTitle=document.querySelector('#updateTitle')
 const updateImportant=document.querySelector('#updateImportant')
 const updateBtn=document.querySelector('#updateBtn')
+const updateImage=document.querySelector('#updateImage')
+
+const noteImage=document.querySelector('#noteImage')
 
 
 
@@ -90,7 +94,7 @@ let uniqueId;
 // add data event listener
 if(addDataBtn){
   addDataBtn.addEventListener('click',async ()=>{
-    if(!todoTitle.value || !todoDescription.value) {
+    if(!noteTitle.value || !noteDescription.value || !noteImage.files[0]) {
       Toastify({
   text: "❌ Please fill all fields!",
   duration: 3000,
@@ -103,16 +107,39 @@ if(addDataBtn){
 
       return
     }
+
+// cloudinary code 
+
+
+
+
+
+const formData = new FormData();
+  formData.append('file', noteImage.files[0]);
+  formData.append('upload_preset', 'coderSaad');
+
+  console.log(formData,"form data");
+  
+ const imageUrl= await  addPhoto(formData)
+ console.log(imageUrl,"image url");
+ 
+
+  
+
+// cloudinary code end
+
+
       
     const now = new Date()
     const date = `${now.getDate()}-${now.getMonth()+1}-${now.getFullYear()}`
     const time = `${now.getHours()}:${now.getMinutes()}:${now.getSeconds()}`
     const selectionImportance=getValue()
-    console.log(todoTitle.value);
-    console.log(todoDescription.value);
+    console.log(noteTitle.value);
+    console.log(noteDescription.value);
+    console.log(noteImage);
     
     
-     uniqueId=await addData(selectionImportance,todoDescription.value,todoTitle.value,date,time)
+     uniqueId=await addData(selectionImportance,noteDescription.value,noteTitle.value,date,time,imageUrl)
     console.log(selectionImportance);
              getData(uniqueId)
 
@@ -121,7 +148,7 @@ if(addDataBtn){
        userDataArray=await getAllData()
 
        Toastify({
-     text: "✅ Todo added successfully!",
+     text: "✅ note added successfully!",
      duration: 3000,
      close: true,
      gravity: "top",
@@ -134,8 +161,8 @@ if(addDataBtn){
       
 
 
-    todoDescription.value=''
-    todoTitle.value=''
+    noteDescription.value=''
+    noteTitle.value=''
 
 
 
@@ -173,7 +200,7 @@ async function showUserData(){
 
   console.log(userDataArray, "FULL DATA");
 
-   let importantTodos=userDataArray.filter((importantTodo)=> importantTodo.isImportant === 'important' ).map((importantNote)=>{
+   let importantnotes=userDataArray.filter((importantnote)=> importantnote.isImportant === 'important' ).map((importantNote)=>{
     return(
       
           `
@@ -189,7 +216,7 @@ async function showUserData(){
     <!-- Title + Badge -->
     <div class="flex items-center justify-between">
       <h3 class="font-semibold text-slate-800 text-lg">
-        ${importantNote.todoTitle}
+        ${importantNote.noteTitle}
       </h3>
 
       <!-- Important Badge -->
@@ -200,15 +227,28 @@ async function showUserData(){
 
     <!-- Description -->
     <p class="text-slate-600 text-sm mt-2 leading-relaxed">
-      ${importantNote.todoDescription}
+      ${importantNote.noteDescription}
     </p>
+
+    <!-- Image (NEW) -->
+    ${
+      importantNote.noteImageUrl 
+      ? `
+        <img 
+          src="${importantNote.noteImageUrl}" 
+          alt="note image"
+          class="mt-3 w-full max-h-64 object-cover rounded-lg border border-amber-200 shadow-sm"
+        />
+      `
+      : ""
+    }
 
     <!-- Buttons -->
     <div class="flex justify-end gap-3 mt-4 text-sm">
 
       <button 
-      id="${importantNote.id}" 
-        class="updateTodoBtn px-3 py-1 rounded-md bg-blue-50 text-blue-600 
+        id="${importantNote.id}" 
+        class="updatenoteBtn px-3 py-1 rounded-md bg-blue-50 text-blue-600 
                hover:bg-blue-100 transition"
         data-bs-toggle="modal" 
         data-bs-target="#staticBackdrop">
@@ -217,7 +257,7 @@ async function showUserData(){
 
       <button 
         id="${importantNote.id}" 
-        class="deleteTodoBtn px-3 py-1 rounded-md 
+        class="deletenoteBtn px-3 py-1 rounded-md 
                bg-red-50 text-red-500 hover:bg-red-100 transition">
         Delete
       </button>
@@ -227,18 +267,19 @@ async function showUserData(){
   </div>
 
 </div>
+
 `
             )
           })
           impNoteSec.innerHTML=`
           
-   ${importantTodos.join('')}
+   ${importantnotes.join('')}
    `
 
 
    
 
-   let notImportantTodo=userDataArray.filter((notImportantTodo)=> notImportantTodo.isImportant === 'not important').map((unImportantNote)=>{
+   let notImportantnote=userDataArray.filter((notImportantnote)=> notImportantnote.isImportant === 'not important').map((unImportantNote)=>{
     return(
       `
       
@@ -247,33 +288,39 @@ async function showUserData(){
 
   <!-- Not Important Card -->
   <div 
-    class="bg-slate-50 border border-slate-200 
+    class="bg-white border-l-4 border-slate-300 
            p-4 rounded-xl shadow-sm 
-           transition hover:shadow-md">
+           transition hover:shadow-lg hover:scale-[1.01]">
 
-    <!-- Title + Badge -->
-    <div class="flex items-center justify-between">
-      <h3 class="font-medium text-slate-700">
-        ${unImportantNote.todoTitle}
-      </h3>
-
-      <!-- Not Important Badge -->
-      <span class="text-xs bg-slate-300 text-slate-700 px-2 py-1 rounded-md">
-        NOT IMPORTANT
-      </span>
-    </div>
+    <!-- Title -->
+    <h3 class="font-semibold text-slate-800 text-lg">
+      ${unImportantNote.noteTitle}
+    </h3>
 
     <!-- Description -->
-    <p class="text-slate-500 text-sm mt-2">
-      ${unImportantNote.todoDescription}
+    <p class="text-slate-600 text-sm mt-2 leading-relaxed">
+      ${unImportantNote.noteDescription}
     </p>
+
+    <!-- Image (NEW) -->
+    ${
+      unImportantNote.noteImageUrl 
+      ? `
+        <img 
+          src="${unImportantNote.noteImageUrl}" 
+          alt="note image"
+          class="mt-3 w-full max-h-60 object-cover rounded-lg border"
+        />
+      `
+      : ""
+    }
 
     <!-- Buttons -->
     <div class="flex justify-end gap-3 mt-4 text-sm">
 
       <button 
-      id="${unImportantNote.id}" 
-        class="updateTodoBtn px-3 py-1 rounded-md bg-blue-50 text-blue-600 
+        id="${unImportantNote.id}" 
+        class="updatenoteBtn px-3 py-1 rounded-md bg-blue-50 text-blue-600 
                hover:bg-blue-100 transition"
         data-bs-toggle="modal" 
         data-bs-target="#staticBackdrop">
@@ -282,7 +329,7 @@ async function showUserData(){
 
       <button 
         id="${unImportantNote.id}" 
-        class="deleteTodoBtn px-3 py-1 rounded-md 
+        class="deletenoteBtn px-3 py-1 rounded-md 
                bg-red-50 text-red-500 hover:bg-red-100 transition">
         Delete
       </button>
@@ -293,13 +340,14 @@ async function showUserData(){
 
 </div>
 
+
 `
             )
           })
           
           notImpNoteSec.innerHTML=`
 
-      ${notImportantTodo.join('')}
+      ${notImportantnote.join('')}
    `
    
 
@@ -324,7 +372,7 @@ const body=document.body
 
 // for delete functionality
 body.addEventListener('click',(e)=>{
-  if(e.target.classList.contains('deleteTodoBtn')){
+  if(e.target.classList.contains('deletenoteBtn')){
     console.log(e.target.parentNode.parentNode, 'parent element target element');
     
     console.log(e.target.id, "==> this is id")
@@ -332,7 +380,7 @@ body.addEventListener('click',(e)=>{
     e.target.parentNode.parentNode.remove()
 
     Toastify({
-  text: "🗑️ Todo deleted successfully!",
+  text: "🗑️ note deleted successfully!",
   duration: 3000,
   close: true,
   gravity: "top",
@@ -346,19 +394,21 @@ body.addEventListener('click',(e)=>{
   }
 })
 
-let selectedTodoDetails;
+let selectednoteDetails;
 
 // show modal data
 body.addEventListener('click',(e)=>{
-if(e.target.classList.contains('updateTodoBtn')){
+if(e.target.classList.contains('updatenoteBtn')){
   console.log(e.target.parentNode.parentNode, 'parent element target element');
 
-   selectedTodoDetails=userDataArray.find(selectedTodo=>  selectedTodo.id ===e.target.id)
-  console.log(selectedTodoDetails);
+   selectednoteDetails=userDataArray.find(selectednote=>  selectednote.id ===e.target.id)
+  console.log(selectednoteDetails);
 
-  updateTitle.value=selectedTodoDetails.todoTitle
-  updateDescription.value=selectedTodoDetails.todoDescription
-  updateImportant.value=selectedTodoDetails.isImportant
+  updateTitle.value=selectednoteDetails.noteTitle
+  updateDescription.value=selectednoteDetails.noteDescription
+  updateImportant.value=selectednoteDetails.isImportant
+  // updateImage.files=selectednoteDetails.noteImageUrl
+
 
 
 
@@ -372,15 +422,32 @@ if(e.target.classList.contains('updateTodoBtn')){
 
 // update data functionality
 updateBtn.addEventListener('click', async () => {
-  selectedTodoDetails.todoTitle = updateTitle.value
-  selectedTodoDetails.todoDescription = updateDescription.value
-  selectedTodoDetails.isImportant = updateImportant.value
 
-  await UpdateTodo(
-    selectedTodoDetails,
-    selectedTodoDetails.todoTitle,
-    selectedTodoDetails.todoDescription,
-    selectedTodoDetails.isImportant
+
+ let updatedImageUrl = selectednoteDetails.noteImageUrl; // default purani image
+
+  // agar user ne new image select ki
+  if(updateImage.files[0]){
+    const formData = new FormData();
+    formData.append('file', updateImage.files[0]);
+    formData.append('upload_preset', 'coderSaad');
+
+    updatedImageUrl = await addPhoto(formData);
+  }
+
+
+
+  selectednoteDetails.noteTitle = updateTitle.value
+  selectednoteDetails.noteDescription = updateDescription.value
+  selectednoteDetails.isImportant = updateImportant.value
+    selectednoteDetails.noteImageUrl = updatedImageUrl
+
+  await Updatenote(
+    selectednoteDetails,
+    selectednoteDetails.noteTitle,
+    selectednoteDetails.noteDescription,
+    selectednoteDetails.isImportant,
+    selectednoteDetails.noteImageUrl
   )
 
   // Refresh UI
@@ -392,7 +459,7 @@ updateBtn.addEventListener('click', async () => {
   modal.hide()
 
   Toastify({
-    text: "✏️ Todo updated successfully!",
+    text: "✏️ note updated successfully!",
     duration: 3000,
     close: true,
     gravity: "top",

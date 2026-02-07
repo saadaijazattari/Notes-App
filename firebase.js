@@ -162,9 +162,9 @@ signInWithPopup(auth, provider)
 
 
 //  add data function
- export async function addData(selectionImportance,todoDescription,todoTitle,date,time){
+ export async function addData(selectionImportance,noteDescription,noteTitle,date,time,imageUrl){
 
-  const colRef = collection(db, "todos")
+  const colRef = collection(db, "notes")
 
 // Generate unique document reference automatically
 const docRef = doc(colRef) 
@@ -175,9 +175,10 @@ const docRef = doc(colRef)
 
 
 await setDoc(docRef, {
-  todoTitle : todoTitle,
-  todoDescription : todoDescription,
+  noteTitle : noteTitle,
+  noteDescription : noteDescription,
   isImportant : selectionImportance,
+  noteImageUrl:imageUrl,
   createdAt : `${date} at ${time}`
 });
 
@@ -192,7 +193,7 @@ return docRef.id
 // get data function 
 export async function getData(uniqueId){
 
-const docRef = doc(db, "todos", uniqueId);
+const docRef = doc(db, "notes", uniqueId);
 const docSnap = await getDoc(docRef);
 
 if (docSnap.exists()) {
@@ -207,7 +208,7 @@ if (docSnap.exists()) {
 // get multiple data
 export async function getAllData(){
   const userArray = []  
-  const q = query(collection(db, "todos"));
+  const q = query(collection(db, "notes"));
 
 const querySnapshot = await getDocs(q);
 querySnapshot.forEach((doc) => {
@@ -220,31 +221,34 @@ return userArray
 
 }
 
-// delete todo
+// delete note
 export async function deleteData(uniqueId){
 
 
-await deleteDoc(doc(db, 'todos', uniqueId));
+await deleteDoc(doc(db, 'notes', uniqueId));
 
 }
 
-// update Todo
-export async function UpdateTodo(selectedTodo,updatedTitle,updatedDescription,updatedImportance){
+// update note
+export async function Updatenote(selectednote,updatedTitle,updatedDescription,updatedImportance,updatednoteImageUrl){
 const now = new Date()
     const date = `${now.getDate()}-${now.getMonth()+1}-${now.getFullYear()}`
     const time = `${now.getHours()}:${now.getMinutes()}:${now.getSeconds()}`
 
-    console.log(selectedTodo);
+    console.log(selectednote);
     console.log(updatedTitle);
     console.log(updatedDescription);
     console.log(updatedImportance);
+    console.log(updatednoteImageUrl,"updated noteImageUrl");
+    
     
 
 // Add a new document in collection "cities"
-await updateDoc(doc(db, "todos", selectedTodo.id), {
-  todoTitle : updatedTitle,
-  todoDescription : updatedDescription,
+await updateDoc(doc(db, "notes", selectednote.id), {
+  noteTitle : updatedTitle,
+  noteDescription : updatedDescription,
   isImportant : updatedImportance,
+  noteImageUrl:updatednoteImageUrl,
   createdAt : `${date} at ${time}`
 });
 }

@@ -51,7 +51,7 @@
 
     <!-- Title -->
     <input
-    id="todoTitle"
+    id="noteTitle"
       type="text"
       placeholder="Note title"
       class="border rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500 outline-none"
@@ -59,11 +59,24 @@
 
     <!-- Description -->
     <textarea
-    id="todoDescription"
+    id="noteDescription"
       rows="3"
       placeholder="Note description"
       class="border rounded-lg px-4 py-2 focus:ring-2 focus:ring-indigo-500 outline-none resize-none"
     ></textarea>
+
+    <!-- Image Upload -->
+<div>
+  <label class="text-sm text-slate-600 mb-1 block">Upload Picture</label>
+  <input 
+    type="file" 
+    id="noteImage" 
+    accept="image/*"
+    class="border rounded-lg px-4 py-2 w-full bg-white
+           focus:ring-2 focus:ring-indigo-500 outline-none"
+  >
+</div>
+
 
     <!-- Bottom row -->
     <div class="flex flex-col md:flex-row gap-3">
@@ -124,6 +137,17 @@
           class="form-control mb-3"
         ></textarea>
 
+        <!-- Image Upload -->
+        <div class="mb-3">
+          <label class="form-label">Upload Picture</label>
+          <input 
+            type="file" 
+            id="updateImage" 
+            accept="image/*"
+            class="form-control"
+          >
+        </div>
+
         <!-- Select -->
         <select id="updateImportant" class="form-select">
           <option value="important">Important</option>
@@ -142,6 +166,7 @@
 
   </div>
 </div>
+
 
 
 
@@ -173,7 +198,7 @@
         
       </section>
 
-      <div id="noDataDiv" class="hidden bg-red-500">No todo</div>
+      <div id="noDataDiv" class="hidden bg-red-500">No note</div>
 
     </div>
   </div>
